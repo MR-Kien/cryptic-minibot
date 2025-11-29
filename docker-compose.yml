@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  optibot:
+    build: .
+    container_name: minioptibot
+    restart: no
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./state.json:/app/state.json
+      - ./openai_map.json:/app/openai_map.json
+      - ./job.log:/app/job.log
