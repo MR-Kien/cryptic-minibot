@@ -4,21 +4,27 @@ import requests
 import html2text
 import re
 from pathlib import Path
+from .spaces import upload_file, download_file  # Chỉ import cần thiết, bỏ client nếu không dùng
 
 # --- CONFIG ---
 BASE_URL = "https://support.optisigns.com/api/v2/help_center/articles.json"
-OUTPUT_DIR = "data"
-STATE_FILE = "state.json"
+STATE_KEY = "state.json"  # Key trên Spaces cho state.json
+DATA_PREFIX = "articles/"  # Prefix cho các file .md trên Spaces
 
-def load_state():
-    if os.path.exists(STATE_FILE):
-        with open(STATE_FILE, 'r') as f:
+def load_json_from_spaces(key):
+    temp_path = f"/tmp/{os.path.basename(key)}"
+    try:
+        download_file(key, temp_path)
+        with open(temp_path, 'r') as f:
             return json.load(f)
-    return {}
+    except:
+        return {}
 
-def save_state(state):
-    with open(STATE_FILE, 'w') as f:
-        json.dump(state, f, indent=2)
+def save_json_to_spaces(data, key):
+    temp_path = f"/tmp/{os.path.basename(key)}"
+    with open(temp_path, 'w') as f:
+        json.dump(data, f, indent=2)
+    upload_file(temp_path, key)
 
 def get_clean_slug(text):
     slug = text.lower()
@@ -35,13 +41,13 @@ def init_converter():
 
 def run_scraper():
     """Hàm chính để thực hiện việc cào dữ liệu"""
-    Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
-    state = load_state()
+    Path("/tmp/data").mkdir(parents=True, exist_ok=True)  # Sử dụng /tmp cho temp files
+    state = load_json_from_spaces(STATE_KEY)
     converter = init_converter()
     
     url = BASE_URL
     stats = {"added": 0, "updated": 0, "skipped": 0}
-    max_pages = 5 
+    max_pages = 5  # Tăng nếu cần nhiều trang hơn
     current_page = 0
 
     print(f"🕷️  Starting Scraper Job...")
@@ -86,8 +92,12 @@ def run_scraper():
                 
                 slug = get_clean_slug(title)
                 filename = f"{slug}.md"
-                with open(os.path.join(OUTPUT_DIR, filename), 'w', encoding='utf-8') as f:
+                key = DATA_PREFIX + filename  # Key trên Spaces
+                temp_path = f"/tmp/data/{filename}"
+                with open(temp_path, 'w', encoding='utf-8') as f:
                     f.write(full_content)
+                
+                upload_file(temp_path, key)  # Upload lên Spaces
                 
                 state[art_id] = remote_updated_at
                 
@@ -105,6 +115,6 @@ def run_scraper():
             print(f"Error scraping: {e}")
             break
             
-    save_state(state)
+    save_json_to_spaces(state, STATE_KEY)  # Lưu state lên Spaces
     print(f"Scraper Summary: {stats}")
     return stats

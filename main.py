@@ -3,7 +3,7 @@ import os
 import logging
 import requests  # Cần import thư viện này
 import json
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv # Load biến môi trường
 from src.scraper import run_scraper
 from src.vector_ops import sync_vector_store
@@ -21,6 +21,7 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger()
+vn_tz = timezone(timedelta(hours=7))
 
 # --- HÀM GỬI DISCORD ---
 def send_discord_alert(stats):
@@ -43,7 +44,7 @@ def send_discord_alert(stats):
     payload = {
         "embeds": [{
             "title": f"OptiBot Daily Job Report: {status_text}",
-            "description": f"Job finished at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            "description": f"Job finished at {datetime.now(vn_tz).strftime('%Y-%m-%d %H:%M:%S')}",
             "color": color,
             "fields": [
                 {"name": "Added", "value": str(stats['added']), "inline": True},

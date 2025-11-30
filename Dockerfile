@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Tạo thư mục data để tránh lỗi permission (nếu cần)
-RUN mkdir -p data
+RUN mkdir -p /tmp/data
 
 # Lệnh chạy mặc định
 CMD ["python", "main.py"]
