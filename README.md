@@ -1,6 +1,6 @@
 # cryptic-minibot
 
-A small pipeline that scrapes OptiSigns Support Center articles, stores processed Markdown files on DigitalOcean Spaces, and syncs them into an OpenAI Vector Store used by OptiBot.
+A small pipeline that scrapes Support Center articles, stores processed Markdown files on DigitalOcean Spaces, and syncs them into an OpenAI Vector Store used by OptiBot.
 
 ---
 
